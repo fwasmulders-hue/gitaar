@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gitaar Repertoire</title>
+    
+    <style>
+        :root {
+            --primary: #e67e22;
+            --spotify: #1DB954;
+            --ug-yellow: #ffc107;
+            --official-blue: #007bff; /* Nieuwe kleur voor Official */
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --text: #e0e0e0;
+            --text-light: #a0a0a0;
+            --highlight: #5c4b12;
+            --border: #333333;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 5px;
+            padding-bottom: 60px;
+        }
+
+        h1 { 
+            text-align: center; 
+            color: var(--primary); 
+            margin: 5px 0 10px 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+        
+        .sticky-wrapper { position: sticky; top: 5px; z-index: 1000; }
+        
+        .search-container {
+            background: var(--card-bg);
+            padding: 6px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .search-top-row { display: flex; gap: 6px; }
+        .search-options-row { display: flex; gap: 6px; }
+        .search-input-wrapper { position: relative; flex-grow: 1; }
+
+        input[type="text"], input[type="url"], select {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        
+        .search-options-row select { flex: 1; min-width: 0; }
+        input:focus, select:focus { border-color: var(--primary); }
+
+        #clearSearch {
+            position: absolute; right: 0; top: 0; height: 100%; width: 35px;
+            background: transparent; border: none; color: #888; font-size: 18px;
+            display: none; cursor: pointer;
+        }
+
+        details {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+        summary { cursor: pointer; font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+        .add-form { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .btn-group { display: flex; gap: 6px; flex-direction: column; }
+
+        .btn-main, .btn-ug-search, .btn-cancel, .btn-del-form {
+            padding: 10px; border-radius: 6px; border: none; color: white;
+            font-weight: 700; cursor: pointer; width: 100%; font-size: 0.9rem;
+            text-align: center;
+        }
+        .btn-main { background-color: var(--primary); }
+        .btn-ug-search { background-color: #333; color: var(--ug-yellow); border: 1px solid var(--ug-yellow); }
+        .btn-cancel { background-color: #555; display: none; }
+        .btn-del-form { background-color: #cf2828; display: none; color: #fff; }
+
+        /* Compacte Lijst */
+        .song-list { display: flex; flex-direction: column; gap: 4px; }
+
+        .song-row {
+            background: var(--card-bg);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            gap: 8px;
+        }
+
+        .song-info { 
+            flex: 1 1 auto;
+            min-width: 0; 
+            margin-right: 5px; 
+            overflow: hidden;
+        }
+
+        .song-title {
+            font-weight: 700; font-size: 0.95rem; color: var(--text);
+            display: block; margin-bottom: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .song-artist {
+            font-size: 0.8rem; color: var(--text-light);
+            display: block;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        
+        .capo-badge {
+            display: inline-block;
+            color: #ffcc80; font-weight: 600; font-size: 0.7rem; margin-left: 4px;
+            background: #4a3400; padding: 1px 5px; border-radius: 4px; border: 1px solid #754e00;
+            vertical-align: middle;
+        }
+
+        .actions { 
+            display: flex; 
+            gap: 5px; 
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* Knoppen styling */
+        .icon-btn {
+            height: 28px;
+            padding: 0 10px; 
+            border-radius: 14px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            text-decoration: none; 
+            font-size: 12px; 
+            font-weight: 600;
+            border: none;
+            cursor: pointer; 
+            gap: 4px; 
+            transition: transform 0.1s;
+        }
+        .icon-btn:active { transform: scale(0.95); }
+
+        .btn-sp { background: #1DB954; color: #000; } 
+        .btn-chords { background: var(--ug-yellow); color: #000; } 
+        .btn-official { background: var(--official-blue); color: #fff; } /* Nieuwe stijl */
+        .btn-edit { background: #333; color: #bbb; border: 1px solid #555; padding: 0 8px; } 
+        
+        .highlight { background-color: var(--highlight); color: #fff; padding: 0 2px; border-radius: 2px; }
+
+        @media (max-width: 450px) { 
+            .song-row { flex-wrap: wrap; }
+            .song-info { width: 100%; margin-bottom: 4px; }
+            .actions { width: 100%; justify-content: flex-start; }
+            .icon-btn { flex: 1; justify-content: center; } 
+            .btn-edit { flex: 0 0 auto; width: 32px; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎸 Gitaar Archief</h1>
+
+    <div class="sticky-wrapper">
+        <div class="search-container">
+            <div class="search-top-row">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="Zoek..." onkeyup="handleSearch()">
+                    <button id="clearSearch" onclick="clearSearch()">✕</button>
+                </div>
+            </div>
+            <div class="search-options-row">
+                <select id="filterSelect" onchange="handleSearch()">
+                    <option value="all">Alles</option>
+                    <option value="capo">Met Capo</option>
+                    <option value="no_capo">Zonder Capo</option>
+                </select>
+                <select id="sortSelect" onchange="handleSearch()">
+                    <option value="newest">Nieuw</option>
+                    <option value="title_az">A-Z Titel</option>
+                    <option value="artist_az">A-Z Artiest</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <details id="addDetails">
+        <summary id="formTitle">➕ Toevoegen</summary>
+        <div class="add-form">
+            <button onclick="openUltimateGuitarSearch()" class="btn-ug-search">🌍 Zoek Chords op UG</button>
+            <input type="hidden" id="editId">
+            <input type="text" id="title" placeholder="Titel" required>
+            <input type="text" id="artist" placeholder="Artiest">
+            <input type="text" id="capo" placeholder="Capo (bijv. 2)">
+            
+            <input type="url" id="ugLink" placeholder="Link naar Chords">
+            <input type="url" id="officialLink" placeholder="Link naar Official Tabs">
+            <input type="url" id="spotifyLink" placeholder="Link naar Spotify">
+            
+            <div class="btn-group">
+                <button onclick="saveSong()" id="saveBtn" class="btn-main">Opslaan</button>
+                <button onclick="deleteFromForm()" id="deleteBtn" class="btn-del-form">Verwijderen</button>
+                <button onclick="cancelEdit()" id="cancelBtn" class="btn-cancel">Annuleren</button>
+            </div>
+        </div>
+    </details>
+
+    <div id="songList" class="song-list">
+        </div>
+
+    <script>
+        let songs = JSON.parse(localStorage.getItem('myGuitarSongs')) || [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            handleSearch();
+        });
+
+        function saveSong() {
+            const idInput = document.getElementById('editId').value;
+            const title = document.getElementById('title').value;
+            const artist = document.getElementById('artist').value;
+            const capo = document.getElementById('capo').value;
+            
+            const ugLink = document.getElementById('ugLink').value; // Nu "Chords"
+            const officialLink = document.getElementById('officialLink').value; // Nieuw "Official"
+            const spotifyLink = document.getElementById('spotifyLink').value;
+
+            if (!title) { alert("Titel is verplicht!"); return; }
+
+            const song = {
+                id: idInput ? parseInt(idInput) : Date.now(),
+                title,
+                artist,
+                capo,
+                ugLink,        // Link naar Chords
+                officialLink,  // Link naar Official
+                spotifyLink,
+                dateAdded: idInput ? (songs.find(s => s.id == idInput)?.dateAdded || Date.now()) : Date.now()
+            };
+
+            if (idInput) {
+                const index = songs.findIndex(s => s.id == idInput);
+                songs[index] = song;
+            } else {
+                songs.push(song);
+            }
+
+            localStorage.setItem('myGuitarSongs', JSON.stringify(songs));
+            cancelEdit();
+            handleSearch();
+        }
+
+        function editSong(id) {
+            const song = songs.find(s => s.id === id);
+            if (!song) return;
+
+            document.getElementById('editId').value = song.id;
+            document.getElementById('title').value = song.title;
+            document.getElementById('artist').value = song.artist;
+            document.getElementById('capo').value = song.capo;
+            
+            document.getElementById('ugLink').value = song.ugLink || '';
+            document.getElementById('officialLink').value = song.officialLink || ''; // Laad Official link
+            document.getElementById('spotifyLink').value = song.spotifyLink || '';
+
+            document.getElementById('addDetails').open = true;
+            document.getElementById('formTitle').innerText = "✏️ Nummer Bewerken";
+            document.getElementById('saveBtn').innerText = "Wijzigingen Opslaan";
+            document.getElementById('cancelBtn').style.display = 'block';
+            document.getElementById('deleteBtn').style.display = 'block';
+            
+            document.getElementById('addDetails').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function cancelEdit() {
+            document.getElementById('editId').value = '';
+            document.getElementById('title').value = '';
+            document.getElementById('artist').value = '';
+            document.getElementById('capo').value = '';
+            document.getElementById('ugLink').value = '';
+            document.getElementById('officialLink').value = '';
+            document.getElementById('spotifyLink').value = '';
+
+            document.getElementById('addDetails').open = false;
+            document.getElementById('formTitle').innerText = "➕ Toevoegen";
+            document.getElementById('saveBtn').innerText = "Opslaan";
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            handleSearch();
+        }
+
+        function openUltimateGuitarSearch() {
+            const title = document.getElementById('title').value;
+            const artist = document.getElementById('artist').value;
+            const query = `${artist} ${title} chords`.trim();
+            if(query) {
+                window.open(`https://www.ultimate-guitar.com/search.php?search_type=title&value=${encodeURIComponent(query)}`, '_blank');
+            } else {
+                alert("Vul eerst een titel of artiest in.");
+            }
+        }
+
+        function handleSearch() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('filterSelect').value;
+            const sort = document.getElementById('sortSelect').value;
+            const clearBtn = document.getElementById('clearSearch');
+            
+            clearBtn.style.display = term ? 'block' : 'none';
+
+            let filtered = songs.filter(song => {
+                const matchesSearch = (song.title && song.title.toLowerCase().includes(term)) || 
+                                      (song.artist && song.artist.toLowerCase().includes(term));
+                
+                let matchesFilter = true;
+                if (filter === 'capo') matchesFilter = song.capo && song.capo.trim() !== '';
+                if (filter === 'no_capo') matchesFilter = !song.capo || song.capo.trim() === '';
+
+                return matchesSearch && matchesFilter;
+            });
+
+            if (sort === 'newest') {
+                filtered.sort((a, b) => b.dateAdded - a.dateAdded);
+            } else if (sort === 'title_az') {
+                filtered.sort((a, b) => a.title.localeCompare(b.title));
+            } else if (sort === 'artist_az') {
+                filtered.sort((a, b) => (a.artist || "").localeCompare(b.artist || ""));
+            }
+
+            renderSongs(filtered, term);
+        }
+
+        function renderSongs(listData, searchTerm) {
+            const list = document.getElementById('songList');
+            list.innerHTML = '';
+
+            if (listData.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Geen nummers gevonden</div>';
+                return;
+            }
+
+            listData.forEach(song => {
+                const row = document.createElement('div');
+                row.className = 'song-row';
+
+                const dTitle = highlightText(song.title, searchTerm);
+                const dArtist = highlightText(song.artist, searchTerm);
+                let dCapo = '';
+                
+                if (song.capo) {
+                    const highlightedCapo = highlightText(song.capo, searchTerm);
+                    dCapo = `<span class="capo-badge">Capo ${highlightedCapo}</span>`;
+                }
+
+                // Buttons aangepast naar Chords en Official
+                let chordsBtn = song.ugLink ? `<a href="${song.ugLink}" target="_blank" class="icon-btn btn-chords">🎸 Chords</a>` : '';
+                let officialBtn = song.officialLink ? `<a href="${song.officialLink}" target="_blank" class="icon-btn btn-official">⭐ Official</a>` : '';
+                let spBtn = song.spotifyLink ? `<a href="${song.spotifyLink}" target="_blank" class="icon-btn btn-sp">🎧 Luister</a>` : '';
+
+                row.innerHTML = `
+                    <div class="song-info">
+                        <span class="song-title">${dTitle}</span>
+                        <span class="song-artist">${dArtist} ${dCapo}</span>
+                    </div>
+                    <div class="actions">
+                        ${chordsBtn}
+                        ${officialBtn}
+                        ${spBtn}
+                        <button onclick="editSong(${song.id})" class="icon-btn btn-edit">✏️</button>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function highlightText(text, term) {
+            if (!term || !text) return text;
+            return text.replace(new RegExp(`(${term})`, 'gi'), '<span class="highlight">$1</span>');
+        }
+
+        function deleteFromForm() {
+            const id = document.getElementById('editId').value;
+            if(id) {
+                deleteSong(parseInt(id));
+            }
+        }
+
+        function deleteSong(id) {
+            if(confirm("Weet je zeker dat je dit nummer wilt verwijderen?")) {
+                let songs = JSON.parse(localStorage.getItem('myGuitarSongs')) || [];
+                songs = songs.filter(s => s.id !== id);
+                localStorage.setItem('myGuitarSongs', JSON.stringify(songs));
+                cancelEdit();
+                handleSearch();
+            }
+        }
+    </script>
+
+</body>
+</html>
